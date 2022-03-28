@@ -1,23 +1,88 @@
-import logo from './logo.svg';
-import './App.css';
+import React, { useState } from "react";
+import axios from "axios";
+import Search from "./Components/Search";
+import Results from "./Components/Results";
+import Detail from "./Components/Detail";
+import "./App.css";
 
 function App() {
+  const [state, setState] = useState({
+    s: "sherlock",
+    results: [],
+    selected: {},
+  });
+
+  const apiurl = "https://www.omdbapi.com/?apikey=a2526df0";
+
+  const searchInput = (e) => {
+    let s = e.target.value;
+
+    setState((prevState) => {
+      return { ...prevState, s: s };
+    });
+  };
+
+  const search = (e) => {
+    if (e.key === "Enter") {
+      axios(apiurl + "&s=" + state.s).then(({ data }) => {
+        let results = data.Search;
+
+        console.log(results);
+
+        setState((prevState) => {
+          return { ...prevState, results: results };
+        });
+      });
+    }
+  };
+
+  const openDetail = (id) => {
+    axios(apiurl + "&i=" + id).then(({ data }) => {
+      let result = data;
+
+      setState((prevState) => {
+        return { ...prevState, selected: result };
+      });
+    });
+  };
+
+  const closeDetail = () => {
+    setState((prevState) => {
+      return { ...prevState, selected: {} };
+    });
+  };
+
   return (
     <div className="App">
+
+<nav>
+    <h4>LARACASTS</h4>
+    <ul>
+        <li><a href="/">Home</a></li>
+        <li><a href="/movie">Movie</a></li>
+        <li><a href="/reviews">Reviews</a></li>
+		<li><a href="/comingsoon">Coming Soon</a>
+		
+		</li>
+    </ul>
+    </nav>
+
+
+
       <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
+        <h1>Laracasts Mania</h1>
       </header>
+      <main>
+        <Search searchInput={searchInput} search={search} />
+
+        <Results results={state.results} openDetail={openDetail} />
+
+        {typeof state.selected.Title != "undefined" ? (
+          <Detail selected={state.selected} closeDetail={closeDetail} />
+        ) : (
+          false
+        )}
+      </main>
     </div>
   );
 }
